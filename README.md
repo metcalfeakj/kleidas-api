@@ -26,7 +26,8 @@ This repository provides a RESTful API that interacts with a MongoDB collection 
 **Description**: Fetch all verses, with optional filters for book, chapter, verse, and keywords.
 
 **Query Parameters**:
-- `book_name` (optional): The full name of the book (e.g., `John`, `Revelation`).
+- `book_name` (optional): The full name of the book (e.g., `Revelation`).
+- `book_abbr` (optional): The book abbreviation (e.g., `Re`)
 - `chapter_id` (optional): The chapter number.
 - `start_verse_id` (optional): The starting verse number for a range.
 - `end_verse_id` (optional): The ending verse number for a range.
@@ -34,7 +35,7 @@ This repository provides a RESTful API that interacts with a MongoDB collection 
 
 **Example Request**:
 ```bash
-GET /verses?book_name=John&chapter_id=3&start_verse_id=16&end_verse_id=20
+GET /verses?book_name=Revelation&chapter_id=6&start_verse_id=6&end_verse_id=6
 ```
 
 **Response**:
@@ -43,15 +44,34 @@ Returns an array of verse documents that match the query.
 **Example Response**:
 ```json
 [
-  {
-    "_id": "60f1e75f68a6e912e6e2b9e7",
-    "book_name": "John",
-    "chapter_id": 3,
-    "verse_id": 16,
-    "verse_text": "For God so loved the world, that he gave his only begotten Son...",
-    "keywords": ["Salvation", "Love"]
-  }
-]
+    {
+        "book_id": 66,
+        "book_name": "Revelation",
+        "verses": [
+            {
+                "_id": "66f35538411e2dc5fa0053c8",
+                "chapter_id": 6,
+                "verse_id": 6,
+                "verse_text": "And I heard a voice in the midst of the four beasts say, A measure of wheat for a penny, and three measures of barley for a penny; and [see] thou hurt not the oil and the wine.",
+                "keywords": [
+                    "Four Horsemen",
+                    "Third Seal",
+                    "Black Horse",
+                    "Famine",
+                    "Economic Collapse",
+                    "Great Depression",
+                    "Inflation",
+                    "Global Poverty",
+                    "Dispensationalism",
+                    "Tribulation",
+                    "Seven-Year Tribulation",
+                    "Israel's Restoration",
+                    "Seventy Weeks of Daniel"
+                ]
+            }
+        ]
+    }
+]%
 ```
 
 ---

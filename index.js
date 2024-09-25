@@ -39,21 +39,23 @@ app.use(express.json());
  * Description: Fetch all verses, with optional filters for book, chapter, verse, and keywords
  */
 app.get('/verses', async (req, res) => {
-    const { book_name, chapter_id, start_verse_id, end_verse_id, word_search } = req.query;
-    let query = {};
+    const { book_id, book_abbr, book_name, chapter_id, start_verse_id, end_verse_id, word_search } = req.query;
+    let matchQuery = {};
 
     // Optional filtering by book name and chapter
-    if (book_name) query.book_name = book_name;
-    if (chapter_id) query.chapter_id = parseInt(chapter_id);
+    if (book_id) matchQuery.book_id = parseInt(book_id);
+    if (book_abbr) matchQuery.book_abbr = book_abbr;
+    if (book_name) matchQuery.book_name = book_name;
+    if (chapter_id) matchQuery.chapter_id = parseInt(chapter_id);
 
     // Optional filtering by verse range (start_verse_id to end_verse_id)
     if (start_verse_id && end_verse_id) {
-        query.verse_id = { $gte: parseInt(start_verse_id), $lte: parseInt(end_verse_id) };
+        matchQuery.verse_id = { $gte: parseInt(start_verse_id), $lte: parseInt(end_verse_id) };
     }
 
     // Optional filtering by keywords
     if (word_search) {
-        query.keywords = {
+        matchQuery.keywords = {
             $elemMatch: {
                 $regex: word_search,
                 $options: "i" // Case-insensitive search
@@ -62,23 +64,31 @@ app.get('/verses', async (req, res) => {
     }
 
     try {
-        const verses = await Verse.find(query);
-        res.json(verses);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+        const verses = await Verse.aggregate([
+            { $match: matchQuery }, // Filter the documents based on the query
+            {
+                $group: {
+                    _id: { book_id: "$book_id", book_name: "$book_name" }, // Group by both book_id and book_name
+                    verses: { $push: {
+                        _id: "$_id", // Keep the _id field for the verse
+                        chapter_id: "$chapter_id", // Keep chapter_id
+                        verse_id: "$verse_id", // Keep verse_id
+                        verse_text: "$verse_text", // Keep verse_text
+                        keywords: "$keywords" // Keep keywords
+                    }} // Push the filtered fields into the verses array
+                }
+            },
+            { $sort: { "_id.book_id": 1 } } // Sort by book_id (ascending)
+        ]);
 
+        // Format the response to have book_id and book_name in the same layer
+        const formattedResponse = verses.map(group => ({
+            book_id: group._id.book_id,
+            book_name: group._id.book_name,
+            verses: group.verses
+        }));
 
-/**
- * Route: GET /verses/:id
- * Description: Fetch a single verse by its unique ID
- */
-app.get('/verses/:id', async (req, res) => {
-    try {
-        const verse = await Verse.findById(req.params.id);
-        if (!verse) return res.status(404).json({ error: 'Verse not found' });
-        res.json(verse);
+        res.json(formattedResponse);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
