@@ -76,18 +76,6 @@ Returns an array of verse documents that match the query.
 
 ---
 
-### 2. GET /verses/:id
-
-**Description**: Fetch a single verse by its unique MongoDB `_id`.
-
-**Path Parameter**:
-- `id`: The unique ID of the verse.
-
-**Example Request**:
-```bash
-GET /verses/60f1e75f68a6e912e6e2b9e7
-```
-
 **Response**:
 Returns the verse document associated with the given ID.
 
