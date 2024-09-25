@@ -14,9 +14,6 @@ This repository provides a RESTful API that interacts with a MongoDB collection 
 1. [API Documentation](#api-documentation)
     - [GET /verses](#get-verses)
     - [GET /verses/:id](#get-versesid)
-    - [POST /verses](#post-verses)
-    - [PUT /verses/:id](#put-versesid)
-    - [DELETE /verses/:id](#delete-versesid)
 2. [Database Schema](#database-schema)
 3. [Example Queries](#example-queries)
 
@@ -73,75 +70,6 @@ GET /verses/60f1e75f68a6e912e6e2b9e7
 
 **Response**:
 Returns the verse document associated with the given ID.
-
----
-
-### 3. POST /verses
-
-**Description**: Create a new verse entry in the database.
-
-**Request Body**:
-```json
-{
-  "book_abbr": "Jn",
-  "book_id": 43,
-  "book_name": "John",
-  "chapter_id": 3,
-  "verse_id": 16,
-  "verse_text": "For God so loved the world...",
-  "keywords": ["Salvation", "Love"]
-}
-```
-
-**Example Request**:
-```bash
-POST /verses
-```
-
-**Response**:
-Returns the newly created verse.
-
----
-
-### 4. PUT /verses/:id
-
-**Description**: Update an existing verse by its ID.
-
-**Path Parameter**:
-- `id`: The unique ID of the verse to update.
-
-**Request Body**:
-```json
-{
-  "verse_text": "Updated text here...",
-  "keywords": ["Updated", "Keywords"]
-}
-```
-
-**Example Request**:
-```bash
-PUT /verses/60f1e75f68a6e912e6e2b9e7
-```
-
-**Response**:
-Returns the updated verse document.
-
----
-
-### 5. DELETE /verses/:id
-
-**Description**: Delete a verse by its unique ID.
-
-**Path Parameter**:
-- `id`: The unique ID of the verse to delete.
-
-**Example Request**:
-```bash
-DELETE /verses/60f1e75f68a6e912e6e2b9e7
-```
-
-**Response**:
-Returns a success message if the deletion was successful.
 
 ---
 

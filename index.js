@@ -84,50 +84,6 @@ app.get('/verses/:id', async (req, res) => {
     }
 });
 
-/**
- * Route: POST /verses
- * Description: Create a new verse entry
- */
-app.post('/verses', async (req, res) => {
-    const { book_abbr, book_id, book_name, chapter_id, keywords, verse_id, verse_text } = req.body;
-    const newVerse = new Verse({ book_abbr, book_id, book_name, chapter_id, keywords, verse_id, verse_text });
-
-    try {
-        await newVerse.save();
-        res.status(201).json(newVerse);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-/**
- * Route: PUT /verses/:id
- * Description: Update an existing verse by its ID
- */
-app.put('/verses/:id', async (req, res) => {
-    try {
-        const updatedVerse = await Verse.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedVerse) return res.status(404).json({ error: 'Verse not found' });
-        res.json(updatedVerse);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-/**
- * Route: DELETE /verses/:id
- * Description: Delete a verse by its ID
- */
-app.delete('/verses/:id', async (req, res) => {
-    try {
-        const deletedVerse = await Verse.findByIdAndDelete(req.params.id);
-        if (!deletedVerse) return res.status(404).json({ error: 'Verse not found' });
-        res.json({ message: 'Verse deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
