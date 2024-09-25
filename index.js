@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 
 // Connect to MongoDB (make sure to replace the URI with your actual MongoDB connection string)
 mongoose.connect('mongodb://localhost:27017/king_james_bible', {
@@ -48,11 +49,22 @@ app.get('/verses', async (req, res) => {
     if (book_name) matchQuery.book_name = book_name;
     if (chapter_id) matchQuery.chapter_id = parseInt(chapter_id);
 
-    // Optional filtering by verse range (start_verse_id to end_verse_id)
-    if (start_verse_id && end_verse_id) {
-        matchQuery.verse_id = { $gte: parseInt(start_verse_id), $lte: parseInt(end_verse_id) };
+    if (start_verse_id) matchQuery.verse_id = { $gte: parseInt(start_verse_id) };
+
+    // If no end_verse_id is specified, query for the max verse_id in the chapter
+    let finalEndVerseId = end_verse_id;
+    if (!end_verse_id) {
+        try {
+            const maxVerse = await Verse.findOne(matchQuery).sort({ verse_id: -1 }).limit(1); // Get the last verse in the chapter
+            finalEndVerseId = maxVerse ? maxVerse.verse_id : start_verse_id; // Use the max verse_id, or default to start_verse_id
+        } catch (error) {
+            return res.status(500).json({ error: 'Error retrieving maximum verse for the chapter.' });
+        }
     }
 
+    if (finalEndVerseId) {
+        matchQuery.verse_id.$lte = parseInt(finalEndVerseId); // Adjust the query to search up to the end verse
+    }
     // Optional filtering by keywords
     if (word_search) {
         matchQuery.keywords = {
@@ -95,6 +107,8 @@ app.get('/verses', async (req, res) => {
 });
 
 // Start the server
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
