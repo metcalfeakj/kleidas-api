@@ -71,7 +71,7 @@ Returns an array of verse documents that match the query.
             }
         ]
     }
-]%
+]
 ```
 
 ---
