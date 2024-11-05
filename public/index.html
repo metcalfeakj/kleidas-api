@@ -110,26 +110,28 @@
         };
 
         function parseInput(input) {
-  // Updated regex to require digits after the dash for ranges and handle single verse cases
-  const regex = /(\d?\s?\w+)\s*(\d+):(\d+)(?:-(\d+))?|(?:-\s*)$/i;
-  const match = input.match(regex);
+    const regex = /(\d?\s?\w+)\s*(\d+):(\d+)(?:-(\d+))?|(?:-\s*)$/i;
+    const match = input.match(regex);
 
-  if (match) {
-    const bookAbbr = match[1].toLowerCase().replace(/\s+/g, '');
-    const bookName = bookMapping[bookAbbr] || bookAbbr; // Normalize the book name
-    const chapterId = parseInt(match[2]);
-    const startVerseId = parseInt(match[3]);
-    let endVerseId = match[4] ? parseInt(match[4]) : undefined;
+    if (match) {
+        const bookAbbr = match[1].toLowerCase().replace(/\s+/g, '');
+        const bookName = bookMapping[bookAbbr] || bookAbbr;
+        const chapterId = parseInt(match[2]);
+        const startVerseId = parseInt(match[3]);
 
-    // If no end_verse_id is provided, set it to the same as start_verse_id for single verse queries
-    if (!match[4]) {
-      endVerseId = startVerseId;
+        // Set endVerseId only if there is a match in the 4th capture group (explicit range)
+        // or if no dash is present, indicating a single verse (start_verse_id = end_verse_id).
+        let endVerseId;
+        if (match[4]) {
+            endVerseId = parseInt(match[4]);  // Explicit end verse provided
+        } else if (!input.includes('-')) {
+            endVerseId = startVerseId;  // No dash, single-verse query
+        }
+
+        return { bookName, chapterId, startVerseId, endVerseId };
+    } else {
+        return null;
     }
-
-    return { bookName, chapterId, startVerseId, endVerseId };
-  } else {
-    return null;
-  }
 }
 
 
