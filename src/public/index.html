@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King James Bible Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+</head>
+
+<body>
+    <main class="container">
+        <h1>Search the King James Bible</h1>
+        <form id="search-form">
+            <label for="search">Enter Bible Reference:</label>
+            <input type="text" id="search" name="search" placeholder="e.g., Rev 1:1, 1 John 5:7, Rev 1:1-3, Rev 1:1-" required>
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="results">
+            <h2>Results:</h2>
+            <div id="results-container"></div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
