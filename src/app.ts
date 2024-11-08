@@ -8,9 +8,9 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const app = express();
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/king_james_bible';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/king_james_bible';
 
-mongoose.connect(MONGODB_URI).then(() => {
+mongoose.connect(MONGO_URL).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Failed to connect to MongoDB', err);
