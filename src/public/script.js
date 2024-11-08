@@ -185,7 +185,7 @@ document.getElementById('search-form').addEventListener('submit', function (even
     }
 
     const clipboardItem = new ClipboardItem({
-        "text/plain": fetch(`/verses${query}`)
+        "text/plain": fetch(`/api/verses${query}`)
             .then(response => response.json())
             .then(data => {
                 const resultsContainer = document.getElementById('results-container');
