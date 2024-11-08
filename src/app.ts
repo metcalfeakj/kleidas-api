@@ -14,6 +14,7 @@ const verseSchema = new mongoose.Schema({
   verse_id: Number,
   verse_text: String,
   keywords: [String],
+  request_count: { type: Number, default: 0 } // Add request_count with default value of 0
 });
 
 const Verse = mongoose.model('Verse', verseSchema);
@@ -35,8 +36,25 @@ app.get('/verses', async (req: Request, res: Response) => {
 
   if (keyword) query.keywords = keyword;
 
+  // Find the matching verses
   const verses = await Verse.find(query).sort({ verse_id: 1 });
+
+  // Prepare bulkWrite operations to increment request_count
+  const bulkOperations = verses.map(verse => ({
+    updateOne: {
+      filter: { _id: verse._id },
+      update: { $inc: { request_count: 1 } } // Ensure the atomic operator $inc is used here
+    }
+  }));
+  
+
+  // Execute bulkWrite if there are any matching verses
+  if (bulkOperations.length > 0) {
+    await Verse.bulkWrite(bulkOperations);
+  }
+
   res.json(verses);
 });
+
 
 export default app;
