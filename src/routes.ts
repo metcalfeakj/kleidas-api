@@ -18,7 +18,7 @@ router.get('/verses', asyncHandler(async (req: Request, res: Response) => {
 
     if (keyword) query.keywords = keyword;
 
-    const verses = await Verse.find(query);
+    const verses = await Verse.find(query).sort({ verse_id: 1 });
     res.json(verses);
 }));
 
