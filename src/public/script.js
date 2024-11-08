@@ -78,7 +78,6 @@ function parseInput(input) {
         const chapterId = match[2] ? parseInt(match[2]) : null;
         const startVerseId = match[3] ? parseInt(match[3]) : null;
 
-        // If there's an explicit dash but no end verse, set endVerseId to null; otherwise, default to startVerseId
         const endVerseId = match[4] ? parseInt(match[4]) : (input.includes('-') ? null : startVerseId);
 
         return { bookName, chapterId, startVerseId, endVerseId };
@@ -89,8 +88,9 @@ function parseInput(input) {
 
 document.getElementById('search-form').addEventListener('submit', function (event) {
     event.preventDefault();
-
-    const input = document.getElementById('search').value;
+    const searchInput = document.getElementById('search');
+    const input = searchInput.value;
+    const searchButton = document.getElementById('search-button');
     const parsed = parseInput(input);
 
     if (!parsed || !parsed.bookName || !parsed.chapterId) {
@@ -100,10 +100,8 @@ document.getElementById('search-form').addEventListener('submit', function (even
 
     const { bookName, chapterId, startVerseId, endVerseId } = parsed;
 
-    // Construct query with book_name and chapter_id
     let query = `?book_name=${encodeURIComponent(bookName)}&chapter_id=${chapterId}`;
-    
-    // Only add start and end verse if startVerseId is provided; for open-ended range, omit end_verse_id
+
     if (startVerseId !== null) {
         query += `&start_verse_id=${startVerseId}`;
         if (endVerseId !== null) {
@@ -111,40 +109,65 @@ document.getElementById('search-form').addEventListener('submit', function (even
         }
     }
 
-    fetch(`/verses${query}`)
-        .then(response => response.json())
-        .then(data => {
-            const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
+    const clipboardItem = new ClipboardItem({
+        "text/plain": fetch(`/verses${query}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultsContainer = document.getElementById('results-container');
+                resultsContainer.innerHTML = '';
 
-            if (data.length === 0) {
-                resultsContainer.innerHTML = '<p>No results found.</p>';
-            } else {
-                const groupedData = data.reduce((acc, verse) => {
-                    const { book_name, book_id } = verse;
-                    if (!acc[book_name]) {
-                        acc[book_name] = { book_name, book_id, verses: [] };
-                    }
-                    acc[book_name].verses.push(verse);
-                    return acc;
-                }, {});
+                if (data.length === 0) {
+                    resultsContainer.innerHTML = '<p>No results found.</p>';
+                    return '';
+                } else {
+                    const groupedData = data.reduce((acc, verse) => {
+                        const { book_name, chapter_id } = verse;
+                        const verseKey = `${book_name} ${chapter_id}`;
+                        if (!acc[verseKey]) {
+                            acc[verseKey] = { book_name, chapter_id, verses: [] };
+                        }
+                        acc[verseKey].verses.push(verse);
+                        return acc;
+                    }, {});
 
-                Object.values(groupedData).forEach(group => {
-                    const bookHeading = document.createElement('h3');
-                    bookHeading.innerText = `${group.book_name} (ID: ${group.book_id})`;
-                    resultsContainer.appendChild(bookHeading);
+                    let clipboardText = '';
 
-                    group.verses.forEach(verse => {
-                        const verseElem = document.createElement('p');
-                        verseElem.innerText = `Chapter ${verse.chapter_id}, Verse ${verse.verse_id}: ${verse.verse_text}`;
-                        resultsContainer.appendChild(verseElem);
+                    Object.values(groupedData).forEach(group => {
+                        const firstVerseId = group.verses[0].verse_id;
+                        const lastVerseId = group.verses[group.verses.length - 1].verse_id;
+                        const verseRange = firstVerseId === lastVerseId ? `${firstVerseId}` : `${firstVerseId}-${lastVerseId}`;
+
+                        const headingText = `${group.book_name} ${group.chapter_id}:${verseRange}\n`;
+                        resultsContainer.insertAdjacentHTML('beforeend', `<div class="verse-heading">${headingText.trim()}</div>`);
+                        clipboardText += headingText;
+
+                        group.verses.forEach(verse => {
+                            const verseText = `<div class="verse-text">${verse.verse_id} ${verse.verse_text}</div>`;
+                            resultsContainer.insertAdjacentHTML('beforeend', verseText);
+                            clipboardText += `${verse.verse_id} ${verse.verse_text}\n`;
+                        });
+
+                        clipboardText += '\n';
                     });
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching verses:', error);
-            const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '<p>Error fetching verses. Please try again later.</p>';
-        });
+
+                    return new Blob([clipboardText], { type: "text/plain" });
+                }
+            })
+    });
+
+    navigator.clipboard.write([clipboardItem]).then(() => {
+        searchButton.style.backgroundColor = 'green';
+        searchButton.textContent = 'Copied!';
+
+        setTimeout(() => {
+            searchButton.style.backgroundColor = '';
+            searchButton.textContent = 'Search';
+        }, 2000);
+    }).catch(error => {
+        console.error('Error copying to clipboard:', error);
+        alert('Error copying to clipboard. Please try again later.');
+    });
+
+    searchInput.value = '';
+    searchInput.focus();
 });
